@@ -2,17 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LogOut, Upload, Activity, Pill, MessageSquare, FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Upload, Activity, Pill, MessageSquare, FileText } from "lucide-react";
+import { HealthTimeline } from "@/components/dashboard/HealthTimeline";
+import { RecordsUpload } from "@/components/dashboard/RecordsUpload";
+import { MedicationTracker } from "@/components/dashboard/MedicationTracker";
+import { AIHealthAssistant } from "@/components/dashboard/AIHealthAssistant";
+import { ProfileDropdown } from "@/components/dashboard/ProfileDropdown";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     // Check for existing session
@@ -37,22 +38,6 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Signed out successfully",
-      });
-      navigate("/");
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
@@ -75,15 +60,7 @@ const Dashboard = () => {
               HealthUnify
             </h1>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {user?.email}
-            </span>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <ProfileDropdown user={user} />
         </div>
       </header>
 
@@ -118,107 +95,22 @@ const Dashboard = () => {
 
           {/* Health Timeline */}
           <TabsContent value="timeline" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Health Timeline</CardTitle>
-                <CardDescription>
-                  A chronological view of all your health records and events
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-4">No health records yet</p>
-                  <Button>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Your First Record
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <HealthTimeline />
           </TabsContent>
 
           {/* Health Records */}
           <TabsContent value="records" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Health Records</CardTitle>
-                <CardDescription>
-                  Upload and manage your medical documents, lab reports, and prescriptions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="border-2 border-dashed rounded-lg p-12 text-center hover:border-primary/50 transition-colors">
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="font-semibold mb-2">Upload Medical Records</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Drag and drop files here, or click to browse
-                  </p>
-                  <Button>Choose Files</Button>
-                  <p className="text-xs text-muted-foreground mt-4">
-                    Supported: PDF, JPG, PNG (Max 10MB)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <RecordsUpload />
           </TabsContent>
 
           {/* Medications */}
           <TabsContent value="medications" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Medication Tracker</CardTitle>
-                <CardDescription>
-                  Manage your prescriptions and set reminders
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Pill className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-4">No medications added yet</p>
-                  <Button variant="success">
-                    <Pill className="h-4 w-4 mr-2" />
-                    Add Medication
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <MedicationTracker />
           </TabsContent>
 
           {/* AI Assistant */}
           <TabsContent value="assistant" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Health Assistant</CardTitle>
-                <CardDescription>
-                  Ask questions about your health records and get AI-powered insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-12 text-muted-foreground">
-                  <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-4">Your AI assistant is ready to help</p>
-                  <p className="text-sm mb-4">
-                    Upload some health records first, then ask questions like:
-                  </p>
-                  <div className="space-y-2 text-left max-w-md mx-auto mb-4">
-                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                      "What did my last blood test indicate?"
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                      "Am I due for any follow-up checkups?"
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-3 text-sm">
-                      "Summarize my medical history"
-                    </div>
-                  </div>
-                  <Button variant="hero">
-                    <MessageSquare className="h-4 w-4 mr-2" />
-                    Start Conversation
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <AIHealthAssistant />
           </TabsContent>
         </Tabs>
       </main>
